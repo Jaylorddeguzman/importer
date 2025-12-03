@@ -103,24 +103,14 @@ function log(message) {
   console.log(`[${timestamp}] ${message}`);
 }
 
-// Express app for health checks
+// Express app for health checks and UI
 const app = express();
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
-  res.json({
-    service: 'OSM Importer Service',
-    status: 'running',
-    mode: IMPORT_MODE,
-    uptime: state.startTime ? Math.floor((Date.now() - state.startTime) / 1000) : 0,
-    stats: {
-      totalImported: state.totalImported,
-      cycleCount: state.cycleCount,
-      errors: state.errors,
-      currentProvince: ALL_PROVINCES[state.currentProvinceIndex]?.name,
-      currentType: ESTABLISHMENT_TYPES[state.currentTypeIndex],
-      lastImportTime: state.lastImportTime
-    }
-  });
+  res.sendFile('public/index.html', { root: '.' });
 });
 
 app.get('/health', (req, res) => {
@@ -158,6 +148,33 @@ app.get('/stats', (req, res) => {
       interval: `${PING_INTERVAL_MINUTES} minutes`
     }
   });
+});
+
+// New endpoint to fetch recent data from database
+app.get('/api/recent', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 100;
+    const db = mongoClient.db(DB_NAME);
+    const collection = db.collection(COLLECTION_NAME);
+    
+    const establishments = await collection
+      .find({})
+      .sort({ addedAt: -1 })
+      .limit(limit)
+      .toArray();
+    
+    res.json({
+      success: true,
+      count: establishments.length,
+      establishments: establishments
+    });
+  } catch (error) {
+    log(`Error fetching recent data: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 // OSM Functions

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSM Importer Service - Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <h1>OSM Importer Service</h1>
+                </div>
+                <div class="status-badge" id="serviceBadge">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Checking...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalImported">0</h3>
+                    <p>Total Imported</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="cycleCount">0</h3>
+                    <p>Cycles Completed</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="uptime">0s</h3>
+                    <p>Uptime</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="errorCount">0</h3>
+                    <p>Errors</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="content-grid">
+            <!-- Current Progress -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-map-pin"></i> Current Progress</h2>
+                </div>
+                <div class="card-body">
+                    <div class="progress-info">
+                        <div class="progress-item">
+                            <label>Province:</label>
+                            <span id="currentProvince" class="badge badge-primary">-</span>
+                        </div>
+                        <div class="progress-item">
+                            <label>Type:</label>
+                            <span id="currentType" class="badge badge-secondary">-</span>
+                        </div>
+                        <div class="progress-item">
+                            <label>Last Import:</label>
+                            <span id="lastImportTime">Never</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-bars">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-label">
+                                <span>Province Progress</span>
+                                <span id="provinceProgress">0/0</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" id="provinceBar"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-label">
+                                <span>Type Progress</span>
+                                <span id="typeProgress">0/0</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill" id="typeBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Keep-Alive Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-heartbeat"></i> Keep-Alive Status</h2>
+                </div>
+                <div class="card-body">
+                    <div class="keep-alive-info">
+                        <div class="info-row">
+                            <span class="info-label">Enabled:</span>
+                            <span id="keepAliveEnabled" class="badge">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Ping Count:</span>
+                            <span id="pingCount">0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Interval:</span>
+                            <span id="pingInterval">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Mode -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-cog"></i> Service Configuration</h2>
+            </div>
+            <div class="card-body">
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label>Import Mode:</label>
+                        <span id="importMode" class="badge badge-info">-</span>
+                    </div>
+                    <div class="config-item">
+                        <label>Status:</label>
+                        <span id="isRunning" class="badge">-</span>
+                    </div>
+                    <div class="config-item">
+                        <label>Total Provinces:</label>
+                        <span id="totalProvinces">0</span>
+                    </div>
+                    <div class="config-item">
+                        <label>Total Types:</label>
+                        <span id="totalTypes">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-table"></i> Recent Imports</h2>
+                <button class="btn btn-primary" id="refreshDataBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="data-table" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Address</th>
+                                <th>Coordinates</th>
+                                <th>Added At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <tr>
+                                <td colspan="5" class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination">
+                    <button class="btn btn-secondary" id="prevBtn" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span id="pageInfo">Page 1 of 1</span>
+                    <button class="btn btn-secondary" id="nextBtn" disabled>
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fas fa-list"></i> Activity Log</h2>
+                <button class="btn btn-secondary" id="clearLogBtn">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="activity-log" id="activityLog">
+                    <div class="log-entry">
+                        <span class="log-time">[Starting]</span>
+                        <span class="log-message">Connecting to service...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 OSM Importer Service. Data from OpenStreetMap.</p>
+            <p>Last Updated: <span id="lastUpdate">Never</span></p>
+        </footer>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
